@@ -49,20 +49,20 @@ CREATE TABLE fact_HIV_Metrics (
 ```
 
 ## 🧮 Advanced DAX Optimization
-Calculations strictly leverage modern DAX frameworks. Variables (`VAR`/`RETURN`) are implemented across all calculations to evaluate metrics once, significantly reducing processing overhead during dashboard cross-filtering.
+Calculations strictly leverage modern DAX frameworks. Variables (`VAR`/`RETURN`) are implemented across some calculations to evaluate metrics once, significantly reducing processing overhead during dashboard cross-filtering.
 
 ### 1. Total People Living with HIV (PLHIV)
 ```DAX
 Total PLHIV = SUM(fact_HIV_Metrics[People_Living_With_HIV])
 ```
 
-### 2. Calculated HIV Prevalence Rate %
+### 2. HIV Prevalence Rate %
 ```DAX
 HIV Prevalence Rate % = 
 VAR TotalInfected = [Total PLHIV]
 VAR TotalPopulation = SUM(fact_HIV_Metrics[Population])
 RETURN
-    DIVIDE(TotalInfected, TotalPopulation) * 100
+    DIVIDE(TotalInfected, TotalPopulation)
 ```
 
 ### 3. Mortality-to-Prevalence Ratio %
@@ -71,7 +71,7 @@ Mortality to Prevalence Ratio % =
 VAR AnnualDeaths = SUM(fact_HIV_Metrics[AIDS_Deaths])
 VAR CurrentCases = [Total PLHIV]
 RETURN
-    DIVIDE(AnnualDeaths, CurrentCases) * 100
+    DIVIDE(AnnualDeaths, CurrentCases)
 ```
 
 ### 4. Total AIDS Deaths
@@ -83,6 +83,16 @@ Total AIDS Deaths = SUM(fact_HIV_Metrics[AIDS_Deaths])
 ```DAX
 Total New Infections = SUM(fact_HIV_Metrics[New_HIV_Infections])
 ```
+
+### 6. Avg Health Expenditure % of GDP
+```DAX
+Avg Health Expenditure % of GDP = 
+VAR TotalExpenditure = SUM(fact_HIV_Metrics[Health Expenditure])
+VAR ValidRowCount = COUNTROWS(FILTER(fact_HIV_Metrics, NOT(ISBLANK(fact_HIV_Metrics[Health Expenditure]))))
+RETURN
+    DIVIDE(TotalExpenditure, ValidRowCount)
+```
+
 ---
 
 ## 🎨 User-Centric Dashboard UI/UX Design
