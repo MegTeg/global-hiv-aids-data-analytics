@@ -18,7 +18,7 @@ The dimension tables utilize unique primary keys (`Country` and `Year`), mapping
 ## 💻 Database Engineering & Schema Definition (SSMS)
 
 ```sql
--- 1. Create Location Dimension Table
+-- 1. Create and populate Location Dimension Table
 CREATE TABLE dim_Location (
     Country VARCHAR(150) PRIMARY KEY,
     ISO_Code VARCHAR(10) NULL,
@@ -26,10 +26,28 @@ CREATE TABLE dim_Location (
     Income_Group VARCHAR(100) NULL
 );
 
+INSERT INTO dim_location (Country,ISO_Code,World_Bank_Region,Income_Group)
+	SELECT DISTINCT
+			Country,
+			ISO_Code,
+			World_Bank_Region,
+			Income_Group
+	FROM [dbo].[clean_aids_dataset]
+	WHERE Country IS NOT NULL;
+
+SELECT * FROM dim_location;
+
 -- 2. Create Time Dimension Table
 CREATE TABLE dim_Time (
     [Year] INT PRIMARY KEY
 );
+
+INSERT INTO dim_time ([Year])
+	SELECT DISTINCT [Year]
+	FROM [dbo].[clean_aids_dataset]
+	WHERE [Year] IS NOT NULL;
+
+SELECT * FROM dim_time;
 
 -- 3. Create Optimized Fact Table (Data Types Managed to Prevent Integer Overflows)
 CREATE TABLE fact_HIV_Metrics (
@@ -46,6 +64,40 @@ CREATE TABLE fact_HIV_Metrics (
     New_HIV_Infections BIGINT NULL,
     AIDS_Deaths BIGINT NULL
 );
+
+INSERT INTO fact_HIV_metrics (
+	Country,
+	[Year],
+	population,
+	male_population,
+	female_population,
+	GDP_per_Capita,
+	life_expectancy,
+	health_expenditure,
+	people_living_with_HIV,
+	new_HIV_infections,
+	AIDS_deaths 
+)	
+SELECT
+	Country,
+	[Year],
+	Population,
+	Male_population,
+	Female_population,
+	GDP_per_Capita,
+	Life_Expectancy,
+	Health_Expenditure,
+	People_Living_With_HIV,
+	New_HIV_Infections,
+	AIDS_deaths
+FROM [dbo].[clean_aids_dataset]
+WHERE Country IS NOT NULL
+AND [Year] IS NOT NULL
+AND new_HIV_infections IS NOT NULL
+AND AIDS_Deaths IS NOT NULL;
+
+SELECT * FROM fact_HIV_metrics;
+
 ```
 
 ## 🧮 Advanced DAX Optimization
